@@ -1,46 +1,73 @@
-﻿
+﻿// das sind alle cities, jede city ist nur zur nächsten city verbunden
 
-// das sind alle cities, jede city ist nur zur nächsten city verbunden
+using System.Xml;
 
-var cityGraph = new[] { Cities.Osaka,
-  Cities.Kyoto,
-  Cities.Tokyo,
-  Cities.Busan,
-  Cities.Shanghai,
-  Cities.Hongkong,
-  Cities.Peking,
-  Cities.Moskau,
-  Cities.StPetersburg,
-  Cities.Hamburg,
-  Cities.Rotterdam,
-  Cities.Wien,
-  Cities.Mailand,
-  Cities.Rom,
-  Cities.Turin,
-  Cities.Paris,
-  Cities.Barcelona,
-  Cities.Lissabon,
-  Cities.London
+var cityGraph = new[] {
+    Cities.Osaka,
+    Cities.Kyoto,
+    Cities.Tokyo,
+    Cities.Busan,
+    Cities.Shanghai,
+    Cities.Hongkong,
+    Cities.Peking,
+    Cities.Moskau,
+    Cities.StPetersburg,
+    Cities.Hamburg,
+    Cities.Rotterdam,
+    Cities.Wien,
+    Cities.Mailand,
+    Cities.Rom,
+    Cities.Turin,
+    Cities.Paris,
+    Cities.Barcelona,
+    Cities.Lissabon,
+    Cities.London
 };
 
 
 var nodes = new List<Node>();
 
-for (var i = 0; i < cityGraph.Length; i++) {
-  var current = cityGraph[i];
-  var next = cityGraph[(i + 1) % cityGraph.Length];
+for (var i = cityGraph.Length - 1; i >= 0; i--) {
+    var current = cityGraph[i];
+    var next = cityGraph[(i + 1) % cityGraph.Length];
 
-  for (var j = 0; j < cityGraph.Length; j++) {
-    // We skip if the 'end' city is the current city or the next city
-    if (j != i && j != (i + 1) % cityGraph.Length) {
-      var end = cityGraph[j];
-      var node = new Node(current, next, end);
-      nodes.Add(node);
-    }
-  }
+    nodes.AddRange(cityGraph.Select(end => new Node(current, next, end)));
 }
 
-Console.WriteLine(nodes.Count);
-nodes.ForEach(Console.WriteLine);
+Configuration.Host = "localhost";
+Configuration.Username = "guest";
+Configuration.Password = "guest";
+Configuration.ExchangeName = "container";
 
 
+var factory = new ConnectionFactory {
+    HostName = Configuration.Host,
+    UserName = Configuration.Username,
+    Password = Configuration.Password
+};
+var connection = factory.CreateConnection();
+var channel = connection.CreateModel();
+
+
+RabbitGenerator.CreateExchange(channel);
+RabbitGenerator.CreateQueues(channel, nodes, (queueName, args) => {
+    var container = JsonSerializer.Deserialize<Container>(args.Body.ToArray());
+    if (container is null) {
+        Console.WriteLine("Container is null");
+        return;
+    }
+
+    Console.WriteLine($"Received container {container} at {queueName}");
+
+    container.Node.CurrentCity = queueName;
+
+    if (container.Node.CurrentCity == container.Node.EndCity) {
+        Console.WriteLine($"Container {container.Id} reached destination {container.Node.CurrentCity}");
+        return;
+    }
+
+    RabbitGenerator.PublishContainerMove(channel, container);
+});
+
+
+Thread.Sleep(Timeout.Infinite);

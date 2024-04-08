@@ -1,11 +1,13 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk.Web">
 
     <PropertyGroup>
-        <OutputType>Exe</OutputType>
         <TargetFramework>net8.0</TargetFramework>
-        <ImplicitUsings>enable</ImplicitUsings>
-        <Nullable>enable</Nullable>
     </PropertyGroup>
+
+    <ItemGroup>
+        <Compile Include="Controllers\ContainerController.fs" />
+        <Compile Include="Program.fs"/>
+    </ItemGroup>
 
     <ItemGroup>
       <ProjectReference Include="..\Contracts\Contracts.vbproj" />

@@ -1,6 +1,13 @@
-@BetterEntryPoint_HostAddress = http://localhost:5084
+PUT http://localhost:5084/api/containers
+Content-Type: application/json
 
-GET {{BetterEntryPoint_HostAddress}}/weatherforecast/
-Accept: application/json
+{
+  "Id" : 1,
+  "Node" : {
+    "CurrentCity" : "Osaka",
+    "NextCity" : "Kyoto",
+    "EndCity" : "London"
+  }
+}
 
 ###

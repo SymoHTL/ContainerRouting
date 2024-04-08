@@ -1,6 +1,7 @@
 ﻿// das sind alle cities, jede city ist nur zur nächsten city verbunden
 
-using System.Xml;
+var builder = WebApplication.CreateBuilder(args);
+
 
 var cityGraph = new[] {
     Cities.Osaka,
@@ -24,7 +25,6 @@ var cityGraph = new[] {
     Cities.London
 };
 
-
 var nodes = new List<Node>();
 
 for (var i = cityGraph.Length - 1; i >= 0; i--) {
@@ -34,10 +34,10 @@ for (var i = cityGraph.Length - 1; i >= 0; i--) {
     nodes.AddRange(cityGraph.Select(end => new Node(current, next, end)));
 }
 
-Configuration.Host = "localhost";
-Configuration.Username = "guest";
-Configuration.Password = "guest";
-Configuration.ExchangeName = "container";
+Configuration.Host = builder.Configuration["RabbitMQ:Host"];
+Configuration.Username = builder.Configuration["RabbitMQ:Username"];
+Configuration.Password = builder.Configuration["RabbitMQ:Password"];
+Configuration.ExchangeName = builder.Configuration["RabbitMQ:ExchangeName"];
 
 
 var factory = new ConnectionFactory {

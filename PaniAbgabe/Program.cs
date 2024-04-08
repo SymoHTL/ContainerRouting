@@ -13,10 +13,12 @@ if (app.Environment.IsDevelopment()) {
 app.UseHttpsRedirection();
 
 var factory = new ConnectionFactory {
-    HostName = "localhost",
-    UserName = "guest",
-    Password = "guest"
+    HostName = builder.Configuration["RabbitMQ:Host"],
+    UserName = builder.Configuration["RabbitMQ:Username"],
+    Password = builder.Configuration["RabbitMQ:Password"]
 };
+
+var exchangeName = builder.Configuration["RabbitMQ:ExchangeName"];
 var connection = factory.CreateConnection();
 var channel = connection.CreateModel();
 
@@ -39,11 +41,11 @@ for (var i = cityGraph.Length - 1; i >= 0; i--) {
 }
 
 
-channel.ExchangeDeclare("container", ExchangeType.Topic, true);
+channel.ExchangeDeclare(exchangeName, ExchangeType.Topic, true);
 
 foreach (var node in nodes) {
     channel.QueueDeclare(node.NextCity, true, false, false, null);
-    channel.QueueBind(node.NextCity, "container", $"container.{node.CurrentCity}.{node.EndCity}");
+    channel.QueueBind(node.NextCity, exchangeName, $"container.{node.CurrentCity}.{node.EndCity}");
             
     var consumer = new EventingBasicConsumer(channel);
     consumer.Received += (_, args) => {
@@ -62,7 +64,7 @@ foreach (var node in nodes) {
             return;
         }
 
-        channel.BasicPublish("container", $"container.{container.Node.CurrentCity}.{container.Node.EndCity}",
+        channel.BasicPublish(exchangeName, $"container.{container.Node.CurrentCity}.{container.Node.EndCity}",
             channel.CreateBasicProperties(), JsonSerializer.SerializeToUtf8Bytes(container));
     };
     channel.BasicConsume(node.NextCity, true, consumer);

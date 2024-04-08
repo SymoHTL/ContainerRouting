@@ -15,24 +15,19 @@ if (app.Environment.IsDevelopment()) {
 
 app.UseHttpsRedirection();
 
+var exchangeName = builder.Configuration["RabbitMQ:ExchangeName"];
 
-app.MapPut("/api/containers", ([FromBody]ContainerDto container) => {
-        Configuration.Host = "localhost";
-        Configuration.Username = "guest";
-        Configuration.Password = "guest";
-        Configuration.ExchangeName = "container";
+var factory = new ConnectionFactory {
+    HostName = builder.Configuration["RabbitMQ:Host"],
+    UserName = builder.Configuration["RabbitMQ:Username"],
+    Password = builder.Configuration["RabbitMQ:Password"]
+};
+var connection = factory.CreateConnection();
+var channel = connection.CreateModel();
 
 
-        var factory = new ConnectionFactory {
-            HostName = Configuration.Host,
-            UserName = Configuration.Username,
-            Password = Configuration.Password
-        };
-        var connection = factory.CreateConnection();
-        var channel = connection.CreateModel();
-        
-        
-        channel.BasicPublish(Configuration.ExchangeName, $"container.{container.Node.CurrentCity}.{container.Node.EndCity}",
+app.MapPut("/api/containers", ([FromBody] ContainerDto container) => {
+        channel.BasicPublish(exchangeName, $"container.{container.Node.CurrentCity}.{container.Node.EndCity}",
             channel.CreateBasicProperties(), JsonSerializer.SerializeToUtf8Bytes(container));
     })
     .WithOpenApi();

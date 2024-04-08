@@ -1,0 +1,13 @@
+PUT http://localhost:5161/api/containers
+Content-Type: application/json
+
+{
+  "Id" : 1,
+  "Node" : {
+    "CurrentCity" : "Osaka",
+    "NextCity" : "Kyoto",
+    "EndCity" : "London"
+  }
+}
+
+###

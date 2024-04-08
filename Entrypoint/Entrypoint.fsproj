@@ -13,4 +13,8 @@
       <ProjectReference Include="..\Contracts\Contracts.vbproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Content Include="Insert.http" />
+    </ItemGroup>
+
 </Project>

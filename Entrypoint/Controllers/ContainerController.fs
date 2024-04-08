@@ -13,7 +13,7 @@ type ContainerController (client : HttpClient) =
 
     [<HttpPut>]
     member _.Put(container : Container) =
-        client.PutAsync("http://localhost:5084/api/containers", JsonContent.Create(container)) |> ignore
+        client.PutAsync("http://localhost:5084/api/containers", JsonContent.Create(container)).Result |> ignore
         0
         
         

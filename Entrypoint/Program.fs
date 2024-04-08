@@ -15,6 +15,8 @@ module Program =
         builder.Services.AddControllers() |> ignore
         
         builder.Services.AddEndpointsApiExplorer() |> ignore
+        
+        builder.Services.AddHttpClient() |> ignore
 
 
         let app = builder.Build()
